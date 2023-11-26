@@ -1,0 +1,27 @@
+port szeregowy
+
+w okienku maja sie objawiac dane ktore bedziemy wysylac z instrumentu
+
+ustawianie portu
+najlpeiej jakby byly automatycznie ustawinae
+
+predkosc transmisji
+bity stopu
+
+---transmisja odbior danych i zapis do pliku tesktwoego
+
+termite by compuphase
+
+mzoe byc przez b.uetooth
+wtedy na tel sciagamy aplikacje do transmisji szeregowej
+
+---sterowanie isntrumentem
+- pole komendy, np. obroci sie albo wykona pomair
+- FML - wyzwala pomair
+
+trzeci poziom:
+---analzia danych, które przyszły
+program rysuje zestawienie danych i analizuje
+
+max 2 tydzien stycznia
+
