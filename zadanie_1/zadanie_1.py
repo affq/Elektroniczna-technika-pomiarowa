@@ -232,9 +232,50 @@ class Zakladka_2():
     def close(self, event=None):
         self.master.destroy()
 
+# 3. trzecia zakładka: Obliczenie różnicy między łukiem a cięciwą [wynik w mm] dla przedziału od 1 km do 100 km. Zrobienie wykresu i wygenerowanie tabeli z wynikami (co 1 km) 
+
 class Zakladka_3():
     def __init__(self):
-        return
+        self.master = tk.Tk()
+        self.master.title("Różnica między łukiem a cięciwą")
+        self.master.geometry("700x600")
+        self.master.resizable(False, False)
+        self.master.configure(background='white')
+        self.master.protocol("WM_DELETE_WINDOW", self.master.destroy)
+        self.master.bind("<Escape>", self.close)
+        self.master.bind("<Return>", self.close)
+        self.master.focus_force()
+        self.master.grab_set()
+
+        self.start = 1000
+        self.stop = 100000
+        self.step = 1000
+
+        self.create_canvas()
+
+
+    def close(self, event=None):
+        self.master.destroy()
+    
+    def difference(self, length):
+        radius = 6378000
+        c = - (length**3) / (24 * 8 *radius**2)
+        return c
+    
+    def create_canvas(self):
+        fig = self.create_plot()
+        canvas = FigureCanvasTkAgg(fig, master=self.master)
+        canvas.get_tk_widget().grid(row=0, column=1)
+        canvas.draw()
+        
+    def create_plot(self):
+        fig = plt.figure(figsize=(5, 5))
+        ax = fig.add_subplot(111)
+        ax.plot([i/1000 for i in range(self.start, self.stop+1, self.step)], [self.difference(i) for i in range(self.start, self.stop+1, self.step)], color="black")
+        ax.set_xlabel("Długość łuku [km]")
+        ax.set_ylabel("Różnica między łukiem a cięciwą [m]")
+        ax.grid()
+        return fig
 
 root = tk.Tk()
 app = StartScreen(root)
