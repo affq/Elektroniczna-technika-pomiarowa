@@ -2,8 +2,6 @@
 # 2. druga zakładka: Obliczenie poprawki atmosferycznej: dane wprowadzane przez użytkownika: długośc fali w nm, temperatura sucha, temperatura mokra  (st C), ciśnienie w hPa, pomierzona długość [m]. Wyświetlanie: poprawka na km, poprawka do mierzonej długości, długość poprawiona [m]
 # 3. trzecia zakładka: Obliczenie różnicy między łukiem a cięciwą [wynik w mm] dla przedziału od 1 km do 100 km. Zrobienie wykresu i wygenerowanie tabeli z wynikami (co 1 km) 
 
-import math
-from typing import Any
 import numpy as np
 import matplotlib.pyplot as plt
 import tkinter as tk
