@@ -17,7 +17,7 @@ class StartScreen:
         self.master.title("Zadanie 1")
         self.master.geometry("600x300")
         self.master.resizable(False, False)
-        self.master.configure(background='white')
+        self.master.configure(background='#dfd6eb')
         self.master.protocol("WM_DELETE_WINDOW", self.master.destroy)
         self.master.iconbitmap('icon.ico')
         self.master.focus_force()
@@ -40,7 +40,7 @@ class StartScreen:
         Zakladka_3()
     
     def create_buttons(self):
-        self.label = tk.Label(self.master, text="Wybierz zakładkę:", font=(font, 12), bg="white")
+        self.label = tk.Label(self.master, text="Wybierz zakładkę:", font=(font, 15, 'bold'), bg="#dfd6eb")
         self.label.pack(pady=10)
 
         self.button1 = tk.Button(self.master, text="Wykres zależności współczynników od długości fali", command=self.zakladka_1, font=(font, 12), bg="white")
