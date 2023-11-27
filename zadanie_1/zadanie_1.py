@@ -19,22 +19,10 @@ class StartScreen:
         self.master.resizable(False, False)
         self.master.configure(background='white')
         self.master.protocol("WM_DELETE_WINDOW", self.master.destroy)
-        self.master.bind("<Escape>", self.close)
-        self.master.bind("<Return>", self.close)
+        self.master.iconbitmap('icon.ico')
         self.master.focus_force()
-        self.master.grab_set()
 
-        self.label = tk.Label(self.master, text="Wybierz zakładkę:", font=(font, 12), bg="white")
-        self.label.pack(pady=10)
-
-        self.button1 = tk.Button(self.master, text="Wykres zależności współczynników od długości fali", command=self.zakladka_1, font=(font, 12), bg="white")
-        self.button1.pack(pady=10)
-
-        self.button2 = tk.Button(self.master, text="Obliczenie poprawki atmosferycznej", command=self.zakladka_2, font=(font, 12), bg="white")
-        self.button2.pack(pady=10)
-
-        self.button3 = tk.Button(self.master, text="Różnica między łukiem a cięciwą", command=self.zakladka_3, font=(font, 12), bg="white")
-        self.button3.pack(pady=10)
+        self.create_buttons()
 
     def close(self, event=None):
         self.master.destroy()
@@ -50,42 +38,67 @@ class StartScreen:
     def zakladka_3(self):
         self.master.destroy()
         Zakladka_3()
+    
+    def create_buttons(self):
+        self.label = tk.Label(self.master, text="Wybierz zakładkę:", font=(font, 12), bg="white")
+        self.label.pack(pady=10)
+
+        self.button1 = tk.Button(self.master, text="Wykres zależności współczynników od długości fali", command=self.zakladka_1, font=(font, 12), bg="white")
+        self.button1.pack(pady=10)
+
+        self.button2 = tk.Button(self.master, text="Obliczenie poprawki atmosferycznej", command=self.zakladka_2, font=(font, 12), bg="white")
+        self.button2.pack(pady=10)
+
+        self.button3 = tk.Button(self.master, text="Różnica między łukiem a cięciwą", command=self.zakladka_3, font=(font, 12), bg="white")
+        self.button3.pack(pady=10)
+
 
 class Zakladka_1():
     def __init__(self):
         self.master = tk.Tk()
         self.master.title("Wykres zależności współczynników od długości fali")
-        self.master.geometry("700x600")
+        self.master.geometry("750x570")
         self.master.resizable(False, False)
         self.master.configure(background='white')
         self.master.protocol("WM_DELETE_WINDOW", self.master.destroy)
-        self.master.bind("<Escape>", self.close)
-        self.master.bind("<Return>", self.close)
+        self.master.iconbitmap('icon.ico')
         self.master.focus_force()
-        self.master.grab_set()
 
         self.data = self.ng0()
         self.create_table()
         self.create_canvas()
+        self.section_buttons()
 
     
     def create_table(self):
-        tree = ttk.Treeview(self.master)
+        style = ttk.Style()
+        style.configure("Treeview.Heading", font=(font, 10, 'bold'))
+
+        tree = ttk.Treeview(self.master, style="Treeview")
         tree["columns"] = ("Długość fali", "Ng")
 
         tree.column("#0", width=0, stretch=tk.NO)
-        tree.column("Długość fali", anchor=tk.W, width=100)
-        tree.column("Ng", anchor=tk.W, width=100)
+        tree.column("Długość fali", anchor=tk.W, width=120)
+        tree.column("Ng", anchor=tk.W, width=80)
 
         tree.heading("#0", text="", anchor=tk.W)
         tree.heading("Długość fali", text="Długość fali [nm]", anchor=tk.W)
         tree.heading("Ng", text="Ng", anchor=tk.W)
 
         for i in range(len(self.data)):
-            tree.insert("", i, text="", values=(self.data[i][0], self.data[i][1]))
+            if i % 2 == 0:
+                tree.insert("", i, text="", values=(int(self.data[i][0] * 1000), "{:.2f}".format(self.data[i][1])), tags=('evenrow',))
+            else:
+                tree.insert("", i, text="", values=(int(self.data[i][0] * 1000), "{:.2f}".format(self.data[i][1])))
 
-        tree.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
-    
+        tree.tag_configure('evenrow', background='#dfd6eb')
+
+        scrollbar = ttk.Scrollbar(self.master, orient="vertical", command=tree.yview)
+        scrollbar.place(x=204, y=75, height=460)
+        tree.configure(yscrollcommand=scrollbar.set)
+
+        tree.place(x=20, y=50, height=500)
+
     def ng0(self):
         ngs = []
         for i in range(400, 1601, 10):
@@ -97,66 +110,102 @@ class Zakladka_1():
     def create_plot(self):
         fig = plt.figure(figsize=(5, 5))
         ax = fig.add_subplot(111)
-        ax.plot([i[0] for i in self.data], [i[1] for i in self.data], color="black")
+        ax.plot([i[0]*1000 for i in self.data], [i[1] for i in self.data], color="#402f60")
         ax.set_xlabel("Długość fali [nm]")
         ax.set_ylabel("Ng")
-        ax.grid()
+        ax.grid(color="#dfd6eb")\
+
+        ax.title.set_text("Zależność wartości Ng od długości fali")
+
+        ax.tick_params(axis='x', colors='#402f60')
+        ax.tick_params(axis='y', colors='#402f60')
         return fig
     
     def create_canvas(self):
         fig = self.create_plot()
         canvas = FigureCanvasTkAgg(fig, master=self.master)
-        canvas.get_tk_widget().grid(row=0, column=1, sticky="nsew")
+        canvas.get_tk_widget().place(x=250, y=20)
         canvas.draw()
 
     def close(self, event=None):
         self.master.destroy()
 
+    # dodaj na samej górze 3 przyciski oznaczające konkretne zakładki, wyróżnij ten, który jest aktualnie wybrany
+    def section_buttons(self):
+        self.button1 = tk.Button(self.master, text="Zakładka 1", font=(font, 12, 'bold'), bg="#dfd6eb")
+        self.button1.place(x=0, y=0, width=100, height=30)
+        self.button1.configure(state='disabled')
+        self.button1.config(relief=tk.SUNKEN)
 
+        self.button2 = tk.Button(self.master, text="Zakładka 2", command=self.zakladka_2, font=(font, 12), bg="white")
+        self.button2.place(x=100, y=0, width=100, height=30)
+
+        self.button3 = tk.Button(self.master, text="Zakładka 3", command=self.zakladka_3, font=(font, 12), bg="white")
+        self.button3.place(x=200, y=0, width=100, height=30)
+    
+    def zakladka_2(self):
+        self.master.destroy()
+        Zakladka_2()
+    
+    def zakladka_3(self):
+        self.master.destroy()
+        Zakladka_3()
     
 class Zakladka_2():
     def __init__(self):
         self.master = tk.Tk()
         self.master.title("Obliczenie poprawki atmosferycznej")
-        self.master.geometry("410x320")
+        self.master.geometry("420x300")
         self.master.resizable(False, False)
         self.master.configure(background='white')
         self.master.protocol("WM_DELETE_WINDOW", self.master.destroy)
-        self.master.bind("<Escape>", self.close)
-        self.master.bind("<Return>", self.close)
+        self.master.iconbitmap('icon.ico')
         self.master.focus_force()
-        self.master.grab_set()
 
+        self.section_buttons()
         self.add_entries()
 
     def add_entries(self):
         self.label1 = tk.Label(self.master, text="Długość fali [nm]:", font=(font, 12), bg="white")
-        self.label1.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
-        self.entry1 = tk.Entry(self.master, font=(font, 12))
-        self.entry1.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
+        self.label1.place(x=10, y=40)
+        self.entry1 = tk.Entry(self.master, font=(font, 12), background="#dfd6eb")
+        self.entry1.focus_set()
+        self.entry1.place(x=200, y=40, width=200)
 
         self.label2 = tk.Label(self.master, text="Temperatura sucha [°C]:", font=(font, 12), bg="white")
-        self.label2.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
-        self.entry2 = tk.Entry(self.master, font=(font, 12))
-        self.entry2.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
+        self.label2.place(x=10, y=80)
+        self.entry2 = tk.Entry(self.master, font=(font, 12), background="#dfd6eb")
+        self.entry2.place(x=200, y=80, width=200)
 
         self.label3 = tk.Label(self.master, text="Temperatura mokra [°C]:", font=(font, 12), bg="white")
-        self.label3.grid(row=2, column=0, sticky="nsew", padx=10, pady=10)
-        self.entry3 = tk.Entry(self.master, font=(font, 12))
-        self.entry3.grid(row=2, column=1, sticky="nsew", padx=10, pady=10)
+        self.label3.place(x=10, y=120)
+        self.entry3 = tk.Entry(self.master, font=(font, 12), background="#dfd6eb")
+        self.entry3.place(x=200, y=120, width=200)
 
         self.label4 = tk.Label(self.master, text="Ciśnienie [hPa]:", font=(font, 12), bg="white")
-        self.label4.grid(row=3, column=0, sticky="nsew", padx=10, pady=10)
-        self.entry4 = tk.Entry(self.master, font=(font, 12))
-        self.entry4.grid(row=3, column=1, sticky="nsew", padx=10, pady=10)
+        self.label4.place(x=10, y=160)
+        self.entry4 = tk.Entry(self.master, font=(font, 12), background="#dfd6eb")
+        self.entry4.place(x=200, y=160, width=200)
 
         self.label5 = tk.Label(self.master, text="Długość [m]:", font=(font, 12), bg="white")
-        self.label5.grid(row=4, column=0, sticky="nsew", padx=10, pady=10)
-        self.entry5 = tk.Entry(self.master, font=(font, 12))
-        self.entry5.grid(row=4, column=1, sticky="nsew", padx=10, pady=10)
+        self.label5.place(x=10, y=200)
+        self.entry5 = tk.Entry(self.master, font=(font, 12), background="#dfd6eb")
+        self.entry5.place(x=200, y=200, width=200)
 
-        self.button = tk.Button(self.master, text="Oblicz poprawkę", command=self.expand, font=(font, 12), bg="white")
-        self.button.grid(row=5, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
+        self.button = tk.Button(self.master, text="Oblicz poprawkę", command=self.expand, font=(font, 12), bg="#402f60", fg="white")
+        self.button.place(x=10, y=240, width=400)
+    
+    def section_buttons(self):
+        self.button1 = tk.Button(self.master, text="Zakładka 1", command=self.zakladka_1, font=(font, 12), bg="white")
+        self.button1.place(x=0, y=0, width=100, height=30)
+
+        self.button2 = tk.Button(self.master, text="Zakładka 2", font=(font, 12, 'bold'), bg="#dfd6eb")
+        self.button2.place(x=100, y=0, width=100, height=30)
+        self.button2.configure(state='disabled')
+        self.button2.config(relief=tk.SUNKEN)
+
+        self.button3 = tk.Button(self.master, text="Zakładka 3", command=self.zakladka_3, font=(font, 12), bg="white")
+        self.button3.place(x=200, y=0, width=100, height=30)
 
     def expand(self):
         try:
@@ -165,26 +214,26 @@ class Zakladka_2():
             messagebox.showerror("Błąd", "Wprowadź poprawne dane")
             return
 
-        self.master.geometry("500x460")
+        self.master.geometry("500x400")
 
         self.label6 = tk.Label(self.master, text="Poprawka na km [mm]:", font=(font, 12), bg="white")
-        self.label6.grid(row=6, column=0, sticky="nsew", padx=10, pady=10)
-        self.entry6 = tk.Entry(self.master, font=(font, 12))
-        self.entry6.grid(row=6, column=1, sticky="nsew", padx=10, pady=10)
+        self.label6.place(x=10, y=290)
+        self.entry6 = tk.Entry(self.master, font=(font, 12, 'bold'), fg="#402f60")
+        self.entry6.place(x=280, y=290, width=200)
         self.entry6.insert(0, str(self.results[0]))
         self.entry6.configure(state='readonly')
 
         self.label7 = tk.Label(self.master, text="Poprawka do mierzonej długości [mm]:", font=(font, 12), bg="white")
-        self.label7.grid(row=7, column=0, sticky="nsew", padx=10, pady=10)
-        self.entry7 = tk.Entry(self.master, font=(font, 12))
-        self.entry7.grid(row=7, column=1, sticky="nsew", padx=10, pady=10)
+        self.label7.place(x=10, y=320)
+        self.entry7 = tk.Entry(self.master, font=(font, 12, 'bold'), fg="#402f60")
+        self.entry7.place(x=280, y=320, width=200)
         self.entry7.insert(0, str(self.results[1]))
         self.entry7.configure(state='readonly')
 
         self.label8 = tk.Label(self.master, text="Długość poprawiona [m]:", font=(font, 12), bg="white")
-        self.label8.grid(row=8, column=0, sticky="nsew", padx=10, pady=10)
-        self.entry8 = tk.Entry(self.master, font=(font, 12))
-        self.entry8.grid(row=8, column=1, sticky="nsew", padx=10, pady=10)
+        self.label8.place(x=10, y=350)
+        self.entry8 = tk.Entry(self.master, font=(font, 12, 'bold'), fg="#402f60")
+        self.entry8.place(x=280, y=350, width=200)
         self.entry8.insert(0, str(self.results[2]))
         self.entry8.configure(state='readonly')
     
@@ -231,6 +280,14 @@ class Zakladka_2():
 
     def close(self, event=None):
         self.master.destroy()
+    
+    def zakladka_1(self):
+        self.master.destroy()
+        Zakladka_1()
+    
+    def zakladka_3(self):
+        self.master.destroy()
+        Zakladka_3()
 
 # 3. trzecia zakładka: Obliczenie różnicy między łukiem a cięciwą [wynik w mm] dla przedziału od 1 km do 100 km. Zrobienie wykresu i wygenerowanie tabeli z wynikami (co 1 km) 
 
@@ -238,14 +295,12 @@ class Zakladka_3():
     def __init__(self):
         self.master = tk.Tk()
         self.master.title("Różnica między łukiem a cięciwą")
-        self.master.geometry("800x600")
+        self.master.geometry("800x550")
         self.master.resizable(False, False)
         self.master.configure(background='white')
         self.master.protocol("WM_DELETE_WINDOW", self.master.destroy)
-        self.master.bind("<Escape>", self.close)
-        self.master.bind("<Return>", self.close)
+        self.master.iconbitmap('icon.ico')
         self.master.focus_force()
-        self.master.grab_set()
 
         self.start = 1000
         self.stop = 100000
@@ -254,6 +309,7 @@ class Zakladka_3():
         self.data = self.calculate_data()
         self.create_canvas()
         self.create_table()
+        self.section_buttons()
 
 
     def close(self, event=None):
@@ -267,20 +323,28 @@ class Zakladka_3():
     def create_canvas(self):
         fig = self.create_plot()
         canvas = FigureCanvasTkAgg(fig, master=self.master)
-        canvas.get_tk_widget().place(x=50, y=0)
+        canvas.get_tk_widget().place(x=280, y=20)
         canvas.draw()
         
     def create_plot(self):
         fig = plt.figure(figsize=(5, 5))
         ax = fig.add_subplot(111)
         ax.set_xlabel("Długość łuku [km]")
-        ax.set_ylabel("Różnica między łukiem a cięciwą [m]")
-        ax.plot([i[0] for i in self.data], [i[1] for i in self.data], color="black")
-        ax.grid()
+        ax.set_ylabel("Różnica między łukiem a cięciwą [mm]")
+        ax.plot([i[0] for i in self.data], [i[1] for i in self.data], color="#402f60")
+        ax.grid(color="#dfd6eb")
+
+        ax.title.set_text("Różnica między łukiem a cięciwą dla przedziału 1-100 km")
+    
+        ax.tick_params(axis='x', colors='#402f60')
+        ax.tick_params(axis='y', colors='#402f60')
         return fig
     
     def create_table(self):
-        tree = ttk.Treeview(self.master)
+        style = ttk.Style()
+        style.configure("Treeview.Heading", font=(font, 10, 'bold'))
+
+        tree = ttk.Treeview(self.master, style="Treeview")
         tree["columns"] = ("Odległość", "Różnica")
 
         tree.column("#0", width=0, stretch=tk.NO)
@@ -292,9 +356,18 @@ class Zakladka_3():
         tree.heading("Różnica", text="Różnica [mm]", anchor=tk.W)
 
         for i in range(len(self.data)):
-            tree.insert("", i, text="", values=(self.data[i][0], self.data[i][1]))
+            if i % 2 == 0:
+                tree.insert("", i, text="", values=(int(self.data[i][0]), "{:.2f}".format(self.data[i][1])), tags=('evenrow',))
+            else:
+                tree.insert("", i, text="", values=(int(self.data[i][0]), "{:.2f}".format(self.data[i][1])))
         
-        tree.place(x=550, y=50, height=500)
+        tree.tag_configure('evenrow', background='#dfd6eb')
+
+        scrollbar = ttk.Scrollbar(self.master, orient="vertical", command=tree.yview)
+        scrollbar.place(x=209, y=65, height=460)
+        tree.configure(yscrollcommand=scrollbar.set)
+        
+        tree.place(x=25, y=40, height=500)
 
     
     def calculate_data(self):
@@ -303,6 +376,26 @@ class Zakladka_3():
             data.append([i / 1000, self.difference(i)*1000])
         
         return data
+    
+    def section_buttons(self):
+        self.button1 = tk.Button(self.master, text="Zakładka 1", command=self.zakladka_1, font=(font, 12), bg="white")
+        self.button1.place(x=0, y=0, width=100, height=30)
+
+        self.button2 = tk.Button(self.master, text="Zakładka 2", command=self.zakladka_2, font=(font, 12), bg="white")
+        self.button2.place(x=100, y=0, width=100, height=30)
+
+        self.button3 = tk.Button(self.master, text="Zakładka 3", font=(font, 12, 'bold'), bg="#dfd6eb")
+        self.button3.place(x=200, y=0, width=100, height=30)
+        self.button3.configure(state='disabled')
+        self.button3.config(relief=tk.SUNKEN)
+    
+    def zakladka_1(self):
+        self.master.destroy()
+        Zakladka_1()
+    
+    def zakladka_2(self):
+        self.master.destroy()
+        Zakladka_2()
     
 
 root = tk.Tk()
