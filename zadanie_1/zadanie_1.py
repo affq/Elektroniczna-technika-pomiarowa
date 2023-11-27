@@ -238,7 +238,7 @@ class Zakladka_3():
     def __init__(self):
         self.master = tk.Tk()
         self.master.title("Różnica między łukiem a cięciwą")
-        self.master.geometry("700x600")
+        self.master.geometry("800x600")
         self.master.resizable(False, False)
         self.master.configure(background='white')
         self.master.protocol("WM_DELETE_WINDOW", self.master.destroy)
@@ -251,7 +251,9 @@ class Zakladka_3():
         self.stop = 100000
         self.step = 1000
 
+        self.data = self.calculate_data()
         self.create_canvas()
+        self.create_table()
 
 
     def close(self, event=None):
@@ -259,23 +261,49 @@ class Zakladka_3():
     
     def difference(self, length):
         radius = 6378000
-        c = - (length**3) / (24 * 8 *radius**2)
+        c = - (length**3) / (24 * (8*radius)**2)
         return c
     
     def create_canvas(self):
         fig = self.create_plot()
         canvas = FigureCanvasTkAgg(fig, master=self.master)
-        canvas.get_tk_widget().grid(row=0, column=1)
+        canvas.get_tk_widget().place(x=50, y=0)
         canvas.draw()
         
     def create_plot(self):
         fig = plt.figure(figsize=(5, 5))
         ax = fig.add_subplot(111)
-        ax.plot([i/1000 for i in range(self.start, self.stop+1, self.step)], [self.difference(i) for i in range(self.start, self.stop+1, self.step)], color="black")
         ax.set_xlabel("Długość łuku [km]")
         ax.set_ylabel("Różnica między łukiem a cięciwą [m]")
+        ax.plot([i[0] for i in self.data], [i[1] for i in self.data], color="black")
         ax.grid()
         return fig
+    
+    def create_table(self):
+        tree = ttk.Treeview(self.master)
+        tree["columns"] = ("Odległość", "Różnica")
+
+        tree.column("#0", width=0, stretch=tk.NO)
+        tree.column("Odległość", anchor=tk.W, width=100)
+        tree.column("Różnica", anchor=tk.W, width=100)
+
+        tree.heading("#0", text="", anchor=tk.W)
+        tree.heading("Odległość", text="Odległość [km]", anchor=tk.W)
+        tree.heading("Różnica", text="Różnica [mm]", anchor=tk.W)
+
+        for i in range(len(self.data)):
+            tree.insert("", i, text="", values=(self.data[i][0], self.data[i][1]))
+        
+        tree.place(x=550, y=50, height=500)
+
+    
+    def calculate_data(self):
+        data = []
+        for i in range(self.start, self.stop + 1, self.step):
+            data.append([i / 1000, self.difference(i)*1000])
+        
+        return data
+    
 
 root = tk.Tk()
 app = StartScreen(root)
