@@ -19,7 +19,6 @@ class StartScreen:
         self.master.resizable(False, False)
         self.master.configure(background='#dfd6eb')
         self.master.protocol("WM_DELETE_WINDOW", self.master.destroy)
-        self.master.iconbitmap('icon.ico')
         self.master.focus_force()
 
         self.create_buttons()
@@ -61,7 +60,6 @@ class Zakladka_1():
         self.master.resizable(False, False)
         self.master.configure(background='white')
         self.master.protocol("WM_DELETE_WINDOW", self.master.destroy)
-        self.master.iconbitmap('icon.ico')
         self.master.focus_force()
 
         self.data = self.ng0()
@@ -159,7 +157,6 @@ class Zakladka_2():
         self.master.resizable(False, False)
         self.master.configure(background='white')
         self.master.protocol("WM_DELETE_WINDOW", self.master.destroy)
-        self.master.iconbitmap('icon.ico')
         self.master.focus_force()
 
         self.section_buttons()
@@ -299,7 +296,6 @@ class Zakladka_3():
         self.master.resizable(False, False)
         self.master.configure(background='white')
         self.master.protocol("WM_DELETE_WINDOW", self.master.destroy)
-        self.master.iconbitmap('icon.ico')
         self.master.focus_force()
 
         self.start = 1000
