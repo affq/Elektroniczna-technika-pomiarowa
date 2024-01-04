@@ -1,3 +1,4 @@
 # elektroniczna-technika-pomiarowa
 
-to repozytorium będzie zawierało historię metra
+* zadanie 1 - ng | poprawka atmosferyczna | różnica między łukiem a cięciwą
+* zadanie 2 - odczyt danych z portu szeregowego z tachimetru
