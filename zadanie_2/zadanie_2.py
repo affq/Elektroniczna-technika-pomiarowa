@@ -65,6 +65,7 @@ def settings_window() -> None:
 
     port_dropdown = ttk.Combobox(port_frame, width=10, values=["COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8"])
     port_dropdown.grid(row=0, column=1, padx=10, pady=10)
+    port_dropdown.set("COM4")
 
     # baud rate
     baud_label = tk.Label(port_frame, text="Baud rate")
@@ -72,6 +73,7 @@ def settings_window() -> None:
 
     baud_dropdown = ttk.Combobox(port_frame, width=10, values=["1200", "2400", "4800", "9600", "14400", "19200", "28800", "38400", "57600", "115200", "230400"])
     baud_dropdown.grid(row=1, column=1, padx=10, pady=10)
+    baud_dropdown.set("9600")
 
     # bity danych
     data_bits_label = tk.Label(port_frame, text="Bity danych")
@@ -79,6 +81,7 @@ def settings_window() -> None:
 
     data_bits_dropdown = ttk.Combobox(port_frame, width=10, values=["5", "6", "7", "8"], state="readonly")
     data_bits_dropdown.grid(row=2, column=1, padx=10, pady=10)
+    data_bits_dropdown.set("8")
 
     # bity stopu
     stop_bits_label = tk.Label(port_frame, text="Bity stopu")
@@ -86,6 +89,7 @@ def settings_window() -> None:
 
     stop_bits_dropdown = ttk.Combobox(port_frame, width=10, values=["1", "2"], state="readonly")
     stop_bits_dropdown.grid(row=0, column=3, padx=10, pady=10)
+    stop_bits_dropdown.set("2")
 
     # parzystość
     parity_label = tk.Label(port_frame, text="Parzystość")
@@ -93,6 +97,7 @@ def settings_window() -> None:
 
     parity_dropdown = ttk.Combobox(port_frame, width=10, values=["brak", "parzysta", "nieparzysta", "mark", "space"], state="readonly")
     parity_dropdown.grid(row=1, column=3, padx=10, pady=10)
+    parity_dropdown.set("brak")
 
     #flow control frame
     flow_control_frame = tk.LabelFrame(SETTINGS_WINDOW, text="Flow control")
@@ -135,8 +140,9 @@ def open_port() -> None:
         messagebox.showerror("Błąd", "Nie można otworzyć portu.")
         return None
     global THREAD
-    THREAD = threading.Thread(target=read_data, args=(SERIAL,))
+    THREAD = threading.Thread(target=read_data, args=(SERIAL,), daemon=True)
     THREAD.start()
+    print("Port otwarty.")
 
 def close_port() -> None:
     global SERIAL
@@ -154,21 +160,17 @@ def close_port() -> None:
         return None
 
 def read_data(ser: serial.Serial) -> None:
-    line = ""
     while True:
-        if ser.in_waiting > 0:
-            data = ser.read(1)
-            if data == b"\n":
-                print(line)
+        try:
+            data = ser.read(ser.inWaiting())
+            if data:
                 output_text.config(state="normal")
-                output_text.insert(tk.END, line)
+                output_text.insert(tk.END, data.decode("utf-8") + "\n")
                 output_text.config(state="disabled")
-                output_text.see(tk.END)
-                line = ""
-            else:
-                line += data.decode("utf-8")
-        else:
             time.sleep(0.1)
+        except serial.SerialException:
+            messagebox.showerror("Błąd", "Nie można odczytać danych.")
+            return None
     
     
 def send_data() -> None:
@@ -190,12 +192,12 @@ def save_to_file() -> None:
     #     return None
     try:
         file = asksaveasfilename(defaultextension=".txt", filetypes=[("Text file", "*.txt"), ("All files", "*.*")])
-        if file is None:
-            return None
-        file.write(output_text.get("1.0", tk.END))
-        file.close()
-    except:
-        messagebox.showerror("Błąd", "Nie można zapisać do pliku")
+        if file:
+            with open(file, "w") as f:
+                f.write(output_text.get("1.0", tk.END))
+        
+    except FileNotFoundError as e:
+        messagebox.showerror("Błąd", f"{e}")
         return None
 
 def clear() -> None:
@@ -232,7 +234,7 @@ output_text.grid(row=0, column=0, padx=10, pady=10)
 input_frame = tk.LabelFrame(ROOT, text="Pole komendy")
 input_frame.grid(row=2, column=0, columnspan=5, padx=10, pady=10)
 
-input_text = tk.Text(input_frame, width=70, height=3)
+input_text = ScrolledText(input_frame, width=70, height=5)
 input_text.grid(row=0, column=0, padx=10, pady=10)
 
 send_button = tk.Button(input_frame, text="Wyślij", width=10, height=1, command=send_data)
