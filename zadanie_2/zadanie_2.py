@@ -167,24 +167,28 @@ def read_data(ser: serial.Serial) -> None:
                 output_text.config(state="normal")
                 output_text.insert(tk.END, data.decode("utf-8") + "\n")
                 output_text.config(state="disabled")
+                output_text.see(tk.END)
             time.sleep(0.1)
         except serial.SerialException:
             messagebox.showerror("Błąd", "Nie można odczytać danych.")
             return None
     
     
-# def send_data() -> None:
-#     if input_text.get("1.0", tk.END) == "\n":
-#         messagebox.showerror("Błąd", "Nie wpisano danych.")
-#         return None
-#     try:
-#         SERIAL.write(input_text.get("1.0", tk.END).encode("utf-8"))
-#     except AttributeError:
-#         messagebox.showerror("Błąd", "Nie otwarto portu.")
-#         return None
-#     except serial.SerialException:
-#         messagebox.showerror("Błąd", "Nie można wysłać danych.")
-#         return None
+def send_data() -> None:
+    if input_text.get("1.0", tk.END) == "\n":
+        messagebox.showerror("Błąd", "Nie wpisano danych.")
+        return None
+    try:
+        command = input_text.get("1.0", tk.END).strip() + "\r\n"
+        SERIAL.write(command.encode("utf-8"))
+    except AttributeError:
+        messagebox.showerror("Błąd", "Nie otwarto portu.")
+        return None
+    except serial.SerialException:
+        messagebox.showerror("Błąd", "Nie można wysłać danych.")
+        return None
+    messagebox.showinfo("Informacja", "Wysłano komendę.")
+    input_text.delete("1.0", tk.END)
 
 def save_to_file() -> None:
     # if output_text.get("1.0", tk.END) == "\n":
@@ -207,7 +211,7 @@ def clear() -> None:
 
 ROOT = tk.Tk()
 ROOT.title("Terminálek")
-ROOT.geometry("630x300")
+ROOT.geometry("630x440")
 ROOT.resizable(False, False)
 
 settings_button = tk.Button(ROOT, text="Ustaw port", width=20, height=2, command = lambda: settings_window())
@@ -231,13 +235,13 @@ output_frame.grid(row=1, column=0, columnspan=5, padx=10, pady=10)
 output_text = ScrolledText(output_frame, width=70, height=10, state="disabled")
 output_text.grid(row=0, column=0, padx=10, pady=10)
 
-# input_frame = tk.LabelFrame(ROOT, text="Pole komendy")
-# input_frame.grid(row=2, column=0, columnspan=5, padx=10, pady=10)
+input_frame = tk.LabelFrame(ROOT, text="Pole komendy")
+input_frame.grid(row=2, column=0, columnspan=5, padx=10, pady=10)
 
-# input_text = ScrolledText(input_frame, width=70, height=5)
-# input_text.grid(row=0, column=0, padx=10, pady=10)
+input_text = ScrolledText(input_frame, width=70, height=3)
+input_text.grid(row=0, column=0, padx=10, pady=10)
 
-# send_button = tk.Button(input_frame, text="Wyślij", width=10, height=1, command=send_data)
-# send_button.grid(row=1, column=0, padx=10, pady=10)
+send_button = tk.Button(input_frame, text="Wyślij", width=10, height=1, command=send_data)
+send_button.grid(row=1, column=0, padx=10, pady=10)
 
 ROOT.mainloop()
